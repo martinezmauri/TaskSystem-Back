@@ -1,98 +1,93 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# DevTask Manager – Backend API
+### 42i Technical Assessment
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+API REST construida con **NestJS**, **TypeORM** y **PostgreSQL** para el challenge técnico *"Task System"*. Contiene toda la lógica de negocio, persistencia de datos y cálculos jerárquicos del sistema de tareas.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## ✨ Características Principales
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+### 🌳 Jerarquía Infinita
+Las tareas soportan anidamiento infinito mediante el patrón **Adjacency List**. Cada tarea puede tener un `parentId` que referencia a otra tarea del mismo proyecto, permitiendo construir árboles de profundidad arbitraria sin límite de niveles.
 
-## Project setup
+### 📊 Analítica de Esfuerzo Recursiva
+Implementación de consultas nativas con **CTEs (Common Table Expressions)** en PostgreSQL para calcular en tiempo real el esfuerzo total de un árbol de tareas completo, agrupado por estado (`TODO`, `IN_PROGRESS`, `DONE`).
 
-```bash
-$ npm install
+```sql
+WITH RECURSIVE task_tree AS (
+  SELECT id, effort, status FROM tasks WHERE id = $1
+  UNION ALL
+  SELECT t.id, t.effort, t.status
+  FROM tasks t INNER JOIN task_tree tt ON t."parentId" = tt.id
+)
+SELECT status, SUM(COALESCE(effort, 0)) as total
+FROM task_tree GROUP BY status;
 ```
 
-## Compile and run the project
+### 🧪 Tests Unitarios
+Lógica de negocio blindada con **Jest**. Los tests cubren `ProjectsService` y `TasksService`, incluyendo mocks de QueryBuilder para el cálculo de `projectKey` y validación del parsing de floats en las analíticas.
+
+---
+
+## 🚀 Cómo Ejecutar el Proyecto (Docker)
+
+El entorno está **100% contenerizado** para instalación con fricción cero.
+
+**Pre-requisitos:** [Docker](https://docs.docker.com/get-docker/) y [Docker Compose](https://docs.docker.com/compose/install/) instalados.
 
 ```bash
-# development
-$ npm run start
+# 1. Clona el repositorio
+git clone https://github.com/martinezmauri/TaskSystem-Back.git
+cd TaskSystem-Back
 
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+# 2. Levanta los servicios (API + PostgreSQL)
+docker-compose up --build -d
 ```
 
-## Run tests
+| Servicio | URL / Puerto |
+|---|---|
+| API (NestJS) | `http://localhost:3001` |
+| Base de datos (PostgreSQL) | `localhost:5432` |
+
+> Los datos persisten en el volumen Docker `postgres_data` entre reinicios.
+
+---
+
+## 🧪 Cómo Ejecutar las Pruebas Unitarias
 
 ```bash
-# unit tests
-$ npm run test
+# Instala las dependencias localmente
+npm install
 
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+# Ejecuta la suite de pruebas
+npm run test
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+**Resultado esperado:**
+```
+Test Suites: 2 passed, 2 total
+Tests:       23 passed, 23 total
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+---
 
-## Resources
+## 🤖 Metodología de Uso de IA
 
-Check out a few resources that may come in handy when working with NestJS:
+Durante el desarrollo de esta API, se utilizaron modelos conversacionales (**Gemini 3.1 Pro** y **Claude Sonnet**) como *"sparring partners"* técnicos. Se usaron principalmente para:
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+- Debatir decisiones de arquitectura (ej. el uso de CTEs para la recursividad en base de datos vs. procesamiento en memoria).
+- Estructurar el boilerplate inicial de las pruebas unitarias con Jest, especialmente los mocks de `createQueryBuilder`.
 
-## Support
+Todo el código generado fue **auditado, refactorizado manualmente y testeado** para asegurar el cumplimiento estricto de las reglas de negocio y tipado.
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+---
 
-## Stay in touch
+## 🛠️ Stack Técnico
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+| Tecnología | Rol |
+|---|---|
+| NestJS | Framework backend (controllers, services, DI) |
+| TypeORM | ORM + migraciones |
+| PostgreSQL 15 | Base de datos relacional |
+| Jest | Testing unitario |
+| Docker / Docker Compose | Contenerización |
