@@ -27,6 +27,11 @@ export class TasksController {
     return this.tasksService.findOne(id);
   }
   
+  @Get('project/:projectId/tree')
+  getProjectTree(@Param('projectId', ParseUUIDPipe) projectId: string) {
+    return this.tasksService.getProjectTree(projectId);
+  }
+
   @Get(':id/tree')
   getTree(@Param('id', ParseUUIDPipe) id: string) {
     return this.tasksService.getTree(id);

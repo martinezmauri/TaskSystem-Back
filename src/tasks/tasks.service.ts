@@ -111,6 +111,34 @@ export class TasksService {
     return root;
   }
 
+  async getProjectTree(projectId: string): Promise<any[]> {
+    const tasks = await this.taskRepository.find({
+      where: { projectId },
+      order: { createdAt: 'ASC' }
+    });
+
+    return this.buildTreeMultiple(tasks);
+  }
+
+  private buildTreeMultiple(tasks: any[]) {
+    const map = new Map<string, any>();
+    tasks.forEach(t => map.set(t.id, { ...t, children: [] }));
+    const roots: any[] = [];
+    
+    tasks.forEach(t => {
+      if (!t.parentId) {
+        roots.push(map.get(t.id));
+      } else {
+        const parent = map.get(t.parentId);
+        if (parent) {
+          parent.children.push(map.get(t.id));
+        }
+      }
+    });
+    
+    return roots;
+  }
+
   async getEffortAnalytics(id: string): Promise<any> {
     // Check if task exists
     await this.findOne(id);
