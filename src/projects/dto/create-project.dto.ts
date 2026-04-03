@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsBoolean } from 'class-validator';
 
 export class CreateProjectDto {
   @IsString()
@@ -8,4 +8,8 @@ export class CreateProjectDto {
   @IsString()
   @IsOptional()
   description?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  status?: boolean;
 }
